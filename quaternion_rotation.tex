@@ -1,0 +1,43 @@
+
+This is a reference~\cite{Foley:1990}.
+\section{Quaternion Rotation}
+\subsection{Quaternions}
+The set of Quaternions $H$ is an extension to the set of complex numbers $C$. It adds two more imaginary numbers j and k. The identety $i^2 = -1$ becomes $i^2 = j^2=k^2=ijk=-1$. A Quaternion can be displayed as: 
+\begin{align}
+\bm{q}=w+xi+yj+zk= \vechb{w}{x}{y}{z}=\big[w,\vec{v}\big]
+\end{align}
+They can be added like vectors.
+\begin{align}
+\bm{q_1} + \bm{q_2} =\big[w_1+w_2,\ve {1}+\ve {2}\big]
+\end{align}
+Multiplication:
+\begin{align}
+\bm{q_1 q_2}&= (w_1+x_1i+y_1j+z_1k)(w_2+x_2i+y_2j+z_2k)\\
+&=\big[(w_1w_2 - \ve {1} \ve{2}),
+(w_1\ve{2} + w_2\ve{1} + \ve{1}\times\ve{2})
+\big]
+\end{align}
+Inversion:
+\begin{align}
+\bm{q}^{-1} &= \frac{1}{\bm{q}}\\
+&= \frac{1}{||q||^2}\big[w,-\vec{v}\big]
+\end{align}
+Absolute:
+\begin{align}
+||\bm q|| = \sqrt{w^2+x^2+y^2+z^2}=w^2+\vec{v}^2
+\end{align}
+\cite{Quat}
+
+
+\subsection{Rotation with Quaternions}
+Let $2\alpha$ be the angle of rotation and $\vec{a}$ be the axis of rotation with ($||\bm{a} || = 1)$, then he rotation Quaternion is given by:
+\begin{align}
+\bm {q}=
+\big[
+	\cos\frac{\alpha}{2}, \vec{a} \sin\frac{\alpha}{2}
+\big]
+\end{align}
+To rotate the vector $\vec{v}$ $\bm{q}$:
+\begin{align}
+v'=\bm{q}^{-1}\big[0,\vec{v}\big]\bm {q}
+\end{align}

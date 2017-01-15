@@ -1,0 +1,57 @@
+\documentclass[
+11pt, 
+DIV10,
+a4paper, 
+oneside, 
+headings=normal, 
+captions=tableheading,
+final, 
+numbers=noenddot
+]{scrartcl}
+
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\include{commands}
+
+
+\title{Thema}
+\subtitle{\vspace{0.5cm}Seminar: Current Topics in Physically-Based Animation}
+\author{Autor}
+
+
+\begin{document}
+\tableofcontents
+\section{General Idea/Introduction}
+\section{Related Work}
+\section{Method}
+	\subsection{Rigid Body Simulation}
+	\subsection{Skinning}
+	\subsection{Interpolation between Examples}
+		\subsubsection{Quaterions}
+		\subsubsection{Quaternionrotation}
+		\subsubsection{QLERP}
+	\subsection{Impulse Projection on Example Poses}
+	\subsection{Propagation of the Deformations}
+	\subsection{Application over time}
+	\subsection{Restitution Modification}
+\section{Results and Discussion}
+	\subsection{Performance}
+	\subsection{Limitations and  future Work}
+	
+\newpage
+\section*{Fragen}
+\subsection*{Methodisch}
+Was genau ist Ziel der Seminarsarbeit?\\
+Soll ich das ganze Paper wiedergeben, oder nur die Methode erklären?\\
+Gibt es inhaltliche Unterschiede zwischen Paper und Vortrag? Welche inhaltlichen gibt es?\\
+Soll ich Rigid Body Simulation und Collision Detection genauer eklaeren?\\
+Wie soll ich alles in 10 Seiten packen? Ist ein Layout, wie bei Papers besser?
+\subsection*{Inhaltlich}
+Auf Seite 4: Warum wird der Inhalt des Minimums quadriert?\\
+Warum ist (6) die gradient direction fuer das Minimierungsproblem?
+Was genau ist mit a few dijkstra passes gemeint?
+
+\end{document}          

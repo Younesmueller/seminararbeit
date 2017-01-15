@@ -1,0 +1,53 @@
+\documentclass[
+	11pt, 
+	DIV10,
+	a4paper, 
+	oneside, 
+	headings=normal, 
+	captions=tableheading,
+	final, 
+	numbers=noenddot
+]{scrartcl}
+
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage[utf8]{inputenc}
+
+
+\include{commands}
+
+
+\title{Example-based Plastic Deformation of Rigid Bodies}
+\subtitle{\vspace{0.5cm}Seminar: Current Topics in Physically-Based Animation}
+\author{Younes Müller}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+In this seminar work I will describe and explain the method described by Ben Jones, Niles Thuerey, Tamar Shinar and Adam W. Brgteil in their article "Example-based Plastic Deformation of Rigid Bodies."\cite{paper}
+The goal is to develop a fast, example based method to simulate deformation of rigid bodies. This has the advantage that the user of the method can control, how the meshes look after deformation.
+This is achieved through combining linear blend skinning with example based deformation.
+\section{Method}
+An artist provides a set of example poses to show the simulator, how the body can transform on impact.
+It is not necessary to provide a lot of poses, but the method is designed for few examples. If the object does not behave as desired more poses can be added.
+Example based deformation opens the opportunity to simulate the models with a rigid body simulator.
+This is suitable for near rigid bodies, as the internal movement and vibration is too fast to be noticed. Furthermore stiff materials have very high forces inside, which gets unstable very fast, if simulated through mass spring systems. \\ \\
+We are using a mesh with $N$ vertices.
+\input{skinning}
+
+\input{deformation}
+
+
+\bibliographystyle{alpha}
+\bibliography{references}
+
+\end{document}          

@@ -1,0 +1,63 @@
+% !TeX encoding = UTF-8
+\subsection{Calculate example weighting}
+When two objects collide, the rigid body simulator passes the vertex $\bm{x}_i$, where the collision occurred and the impulse $\bm{j}_i$.
+The goal is now to calculate a 	useful configuration of the example weights, that matches the impact. As example poses are used, not every deformation is possible. So we first calculate an ideal deformation for the vertex being hit. Then we solve a minimization problem, trying to get good example weightings, so that the distance between the ideal deformation and the skinned position of the vertex is minimal. Afterwards we propagate this to the vertices around.
+\subsubsection{Projection}
+The formula for the ideal deformation is given by:
+\begin{align}
+\bm{\Delta x}_i = \frac{\Delta t}{m} \max(||\bm{j}_i|| - \beta, 0) \frac{\bm j_i}{||\bm j_i||}
+\end{align}
+It extends the usual formula for the deformation $\bm{\Delta x}_i = \frac{\Delta t}{m} \bm j_i$ with the user adjustable threshold $\beta$, on how strong the impact has to be at minimum to be registered. This prevents deformation on resting contact.
+The term $\Delta t$ is the size of a timestep and $m$ is the mass of the object.
+We now construct the Jacobian matrix $\bm J$ by
+\begin{align}
+\bm J_i = \frac{\partial\bm x_i}{\partial \bm E_{ie}} \in \mathbb{R}^{3\times E}
+\end{align}
+It contains the change in vertex position depending on a change in the example weighting.
+So given a change of position $\Delta x$, in the example space we can compute the change of example weightings by:
+\begin{align}
+\bm{\Delta e}_i = \bm J_i^T \bm{\Delta x}_i
+\end{align}
+This formula however requires the change to be in the space of possible changes, that can be achieved by the examples. To get a good $\bm{\Delta e}$ we have to minimmize the following problem:
+\begin{align}
+\bm{\Delta e} = \min_{\bm{\Delta \hat e}}||(\bm x_i (\bm e + \bm{\Delta \hat e}) -\bm x_i (\bm e )) - \bm{\Delta x}_i ||^2
+\end{align}
+A method to solve minimization problems is the method of steepest descent. The direction of the gradients, which points in the direction of steepest ascent on every point on the (hyper-)plane is used to iteratively go in the direction of the steepest descent to search a lokal minimum.
+As we do not opt for physical accuracy it is sufficient to go one step. As initial value $\bm{\Delta e} = 0$ is used. The gradients can be calculated by transposing the Jacobi matrix:
+\begin{align}
+\frac{\bm J_i^T \bm{\Delta x}_i}{||\bm J_i^T \bm{\Delta x}_i||}
+\end{align}
+is the direction of the gradient on $\Delta x$
+
+The stepwidth of the step is chosen, so that it is dependent on the impact and user controllable.
+The approximated change in Example weightings is calculated by:
+\begin{align}
+\bm{\Delta e}_i = \alpha ||\bm{\Delta x}|| \frac{\bm J_i^T \bm{\Delta x}_i}{||\bm J_i^T \bm{\Delta x}_i||}
+\end{align}
+
+\subsection{Propagation}
+If we would apply the change in example weights only on the vertices, that were hit, the result would look bumpy. So the change in example weights is propagated to nearby vertices. As distance measure, the approximated geodesic distance via a few Dijkstra iteration is used. The change of Example weights for every vertex is saved in the Matrix $\bm{\Delta E}$. To propagate the change we modify each column by:
+\begin{align}
+\bm{\Delta E}_j \;+\!\!= \phi\left(\frac{||\bm x_j - \bm x_i||}{\gamma}\right) \bm{\Delta e}_i\\
+\phi(x) =
+\begin{cases}
+	2x^3 - 3x^2 + 1 & : x< 1\\
+	0               & : otherwise	
+\end{cases}
+\end{align}
+This assures that the vertecies within a user determined distance $\gamma$ of the impacted vertexare also affected.
+\subsection{Application}
+To let the impact look more natural, the deforming does not happen instantaneously, but over time.
+The Matrix $\bm{\Delta E}$ contains the change in example weighting that still has to be applicated. In every timestep the current example weighting $\bm E$ and $\bm{\Delta E}$ are updated via:
+\begin{align}
+\bm E \;+\!\!= (1-\lambda)\bm{\Delta E} \\
+\bm {\Delta E} \;*\!\!= \lambda
+\end{align}
+where $\lambda$ is a user given parameter. For $t\rightarrow\infty$ the whole change is applicated.
+\subsection{Restitution Modifiaction}
+As a deformation consumes energy it is necessary to show this in the movement of the object. With the deformation the nonelastic part of the collision increases. The ration between the elastic and non-elastic part, the coefficient of restitution is modified by:
+\begin{align}
+C_r := \min(C_r^*, C_r + \mu \Delta t, \exp(-\nu||\bm{\Delta E}||_f)C_r^*)
+\end{align}
+where $C_r^*$ is the coefficient that is initially used by the rigid body simulator and $\mu$ and $\mu$ are user given.
+
