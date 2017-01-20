@@ -1,0 +1,98 @@
+\subsection{Calculate example weighting}
+When two objects collide, the rigid body simulator passes the vertex $\bm{x}_i$, where the collision occurred and the impulse $\bm{j}_i$.
+The goal is now to calculate a 	useful change $\bm{\Delta E}$ of the example weights, that matches the impact. As example poses are used, not every deformation is possible. So we first calculate an ideal deformation for the vertex being hit. Then we solve a minimization problem, trying to get good example weightings, so that the distance between the ideal deformation and the skinned position of the vertex is minimal. Afterwards we propagate this changeto the vertices around.
+\subsubsection{Projection}
+We want to compute the desired position based on the impulse, given to us by the rigid body simulator. Impulse is a change in momentum. So we can write:
+\begin{align}
+\bm j = m \bm v
+\end{align}
+To get the change in position of the object in the next timestep, we divide by the weight and multiply by the duration of the timeslice:
+\begin{align}
+\bm{\Delta x}= \frac{\Delta t}{m} \bm j
+\end{align}
+To prevent deformation on contact and on soft impacts we add a threshold $\beta$, which prevents the object from deforming to easily and takes out some of the energy. We end up with the following formula for the impacted vertex:
+\begin{align}
+\bm{\Delta x}_i = \frac{\Delta t}{m} \max(||\bm{j}_i|| - \beta, 0) \frac{\bm j_i}{||\bm j_i||}
+\end{align}
+
+We now construct the Jacobian matrix $\bm J$. It contains all partial derivatives of 
+\begin{align}
+\bm J_i &= \frac{\partial\bm x_i}{\partial \bm E_{ie}} \in \mathbb{R}^{3\times E}
+\end{align}
+\begin{align}
+&=
+\begin{pmatrix}
+\frac{\partial\bm x_{i1}}{\partial \bm E_{i1}} &...&\frac{\partial\bm x_{i1}}{\partial \bm E_{in}} &...&\frac{\partial\bm x_{i1}}{\partial \bm E_{iE}} \\
+\frac{\partial\bm x_{i2}}{\partial \bm E_{i1}}&&\frac{\partial\bm x_{i2}}{\partial \bm E_{in}}&&\frac{\partial\bm x_{i2}}{\partial \bm E_{iE}}\\
+\frac{\partial\bm x_{i3}}{\partial \bm E_{i1}} &...&\frac{\partial\bm x_{i3}}{\partial \bm E_{in}} &...&\frac{\partial\bm x_{i3}}{\partial \bm E_{iE}} \\
+\end{pmatrix}
+\end{align}
+It contains the change in vertex position depending on a change in the example weighting. Note that 
+So given a change of position $\bm{\Delta x}$, in the example space we can compute the change of example weightings by:
+\begin{align}
+\bm{\Delta e}_i &= \bm J_i^T \bm{\Delta x}_i\\
+\begin{pmatrix}
+\Delta e_{i1} \\
+...\\
+\Delta e_{in} \\
+...\\
+\Delta e_{iE} \\
+\end{pmatrix}
+&=
+\begin{pmatrix}
+\frac{\partial\bm x_{i1}}{\partial \bm E_{i1}} &\frac{\partial\bm x_{i2}}{\partial \bm E_{i1}}&\frac{\partial\bm x_{i3}}{\partial \bm E_{i1}}\\
+...&&...\\
+\frac{\partial\bm x_{i1}}{\partial \bm E_{in}}&\frac{\partial\bm x_{i2}}{\partial \bm E_{in}}&\frac{\partial\bm x_{i3}}{\partial \bm E_{in}}\\
+...&&...\\
+\frac{\partial\bm x_{i1}}{\partial \bm E_{iE}}&\frac{\partial\bm x_{i2}}{\partial \bm E_{iE}}&\frac{\partial\bm x_{i3}}{\partial \bm E_{iE}}\\
+\end{pmatrix}
+\begin{pmatrix}
+\Delta x_{i1}\\
+\Delta x_{i2}\\
+\Delta x_{i3}\\
+\end{pmatrix}
+\end{align}
+This formula however requires the change to be in the space of possible changes, that can be achieved by the examples. Our goal is now to get a good value for the change in example weights $\bm{\Delta e}$. To achieve that we have to get the change, that happens, if we apply $\bm{\Delta e}$ as close as possible to the desired change $\bm{\Delta x_i}$. Let $\bm x_i(e)$ be the function that moves the vertex according to the example weighting $e$. Then we have to solve:
+\begin{align}
+\bm{\Delta e} = \min_{\bm{\Delta \hat e}}||(\bm x_i (\bm e + \bm{\Delta \hat e}) -\bm x_i (\bm e )) - \bm{\Delta x}_i ||^2
+\end{align}
+
+A method to solve minimization problems is the method of steepest descent. It uses the fact that a gradient always points in the opposite direction of the steepest descent. So if we start at some point and follow the direction of the gradient in infinite many, infinitesimal small steps we reach a local minimum, as far as it exists. Similar to a marble rolling around on a surface. It will sometime reach a lokal minimum, as it always follows the direction of steepest descent. Of course the marble has to be somewhat sticky, otherwise its momentum would prevent it from following the gradient directions.\\
+Instead of going infinite small steps we take finite many not so small steps.
+As we do not opt for physical accuracy it is sufficient to go one step. As initial value $\bm{\Delta e} = 0$ is used. This makes the first term of the minimization cancel out. The gradients can by definition be calculated by transposing the Jacobi matrix:
+\begin{align}
+\bm J_i^T \bm{\Delta x}_i
+\end{align}
+is the gradient on $\Delta x$
+
+The stepwidth of the step is chosen, so that it is dependent on the impact and user controllable: $\alpha ||\bm{\Delta x}||$
+The approximated change in Example weightings is calculated by:
+\begin{align}
+\bm{\Delta e}_i = \alpha ||\bm{\Delta x}|| \frac{\bm J_i^T \bm{\Delta x}_i}{||\bm J_i^T \bm{\Delta x}_i||}
+\end{align}
+
+\subsection{Propagation}
+By now we only calculate a change of example weights for one vertex. In order for the result to look acceptable, the change has to be propagated nearby vertices. To calculate the distance between two vertices, Dijksta's algorithm is used. The change of Example weights for every vertex is saved in the Matrix $\bm{\Delta E}$. To propagate the change we modify each column by:
+\begin{align}
+\bm{\Delta E}_j \;+\!\!= \phi\left(\frac{\text{dist}(\bm x_j , \bm x_i)}{\gamma}\right) \bm{\Delta e}_i\\
+\phi(x) =
+\begin{cases}
+	2x^3 - 3x^2 + 1 & : x< 1\\
+	0               & : otherwise	
+\end{cases}
+\end{align}
+The function $\phi$ is called kernel smoother. It assures that the change is applicated fully on the impacted vertex. With increasing distance the extend of application decreases. How far the changes should be propagated is determined by the value $\gamma$.
+\subsection{Application}
+To let the impact look more natural, the deforming does not happen instantaneously, but over time. The Matrix $\bm{\Delta E}$ contains the change in example weighting that still has to be applicated. Every timestep a bit of the deformation accumulator  $\bm{\Delta E}$ is applicated and decreased by the samee amount. This is achieved through the user given parameter $\lambda$.
+\begin{align}
+\bm E \;+\!\!= (1-\lambda)\bm{\Delta E} \\
+\bm {\Delta E} \;*\!\!= \lambda
+\end{align}
+Note that the amount of application is high directly after the impact and decreases over time. For $t\rightarrow\infty$ the whole change is applicated.
+\subsection{Restitution Modifiaction}
+As a deformation consumes energy it is necessary to show this in the movement of the object. With the deformation the nonelastic part of the collision increases. The ration between the elastic and non-elastic part, the coefficient of restitution is modified by:
+\begin{align}
+C_r := \min(C_r^*, C_r + \mu \Delta t, \exp(-\nu||\bm{\Delta E}||_f)C_r^*)
+\end{align}
+The first term $C_r^*$ is the coefficient that is initially used by the rigid body simulator. The second term increases over time to avoid jittering and the third parameter decreases over time. $\mu$ and $\mu$ are user given parameters.
+

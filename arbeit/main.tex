@@ -1,0 +1,69 @@
+\documentclass[
+	11pt, 
+	DIV10,
+	a4paper, 
+	oneside, 
+	headings=normal, 
+	captions=tableheading,
+	final, 
+	numbers=noenddot
+]{scrartcl}
+
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage[utf8]{inputenc}
+
+
+\include{commands}
+
+
+\title{Example-based Plastic Deformation of Rigid Bodies}
+\subtitle{\vspace{0.5cm}Seminar: Current Topics in Physically-Based Animation}
+\author{Younes Müller}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+In modern day computer graphics gains a lot of importance. David Kriesel once stated in one of his talks that the eye is the only broad band connection to the brain \cite{dkriesel}. So the eye is the way to go to provide much detailed information to humans.
+Despite the large computational effort the results need to be computed nearly in real time.\\
+The field of physically based animation tightly belongs to computer graphics. A method to efficiently simulate the physical movement of objects is rigid body simulation. It assumes the objects to be unchangable. This results in very fast computations. Unfortunately deformation of objects is not initially part of the rigid body simulators.
+In this seminar work I will describe and explain a method to solve this problem, described by Ben Jones, Niles Thuerey, Tamar Shinar and Adam W. Bargteil in their article "Example-based Plastic Deformation of Rigid Bodies."\cite{paper}
+They developed a method, that uses deformation examples to calculate deformations on impact.
+A set of example deformations are provided by an artist or a soft body simulation. Additionally to the speed of this method it gives the user the ability to control exactly, how the deformed bodies look. 
+\section{Method}
+\input{skinning}
+\input{deformation}
+
+\subsection{Userparameters}
+The following parameters are adjustable by the user and determine:
+\begin{itemize}
+	\item $\alpha$: how much the impact deforms the bodies
+	\item $\beta$: how strong the impact has to be to be noticed
+	\item $\gamma$: how far the deformation is propagated
+	\item $\lambda$: how long the deformation should take
+	\item $\mu$ and $\nu$: how elastic the collision is modified
+\end{itemize}
+\subsection{Fracture}
+Fracturing of the mesh is supported. It is achieved by splitting the mesh in individual parts. The parts are hold together by constraints. If a force exceeds a threshold the contraints are removed and the model is fractured.
+\section{Discussion}
+\subsection{Performance}
+Using the method to simulate deformation adds a avarage of 42\% to 59\% every timestep in the tests. It is significantly slower than regular rigid body simulation, because the meshes are not convex and collision detection is faster on convex meshes.
+\subsection{Future Work}
+A possible improvement would be automated rigging. Then example poses can be provided by soft body simulators and integrated into the system.\\
+Implementing an application for modeling the objects or integrating a plugin for a given application would give the possitility to modify parameters with brushes individually for the vertices.
+
+
+
+\bibliographystyle{alpha}
+\bibliography{references}
+
+\end{document}          
